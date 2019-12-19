@@ -1,0 +1,129 @@
+---
+title: "R Notebook"
+author: "Janet Roosimägi"
+date: "18.12.2019"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+# Introduction
+
+In my research I deal with modeling the stormwater drainage system in the town of Haapsalu. Most of the time I don´t need to analyze the data as much I have to process them. But there is also the data about the rain which is usually given in a second interval and makes the field of the data very large. This makes it difficult to analyse the data for a specific time period or day. Therefore, I set myself a goal to find an easier way to analyze the data by using R.
+
+What I learned:
+
+* reading data into R;
+* viewing data;
+* giving the names to the columns;
+* reading data as character;
+* making minute figures into hours;
+* plotting
+* creating a time series graph.
+
+
+## Reading data into R:
+
+```{r}
+library(readxl)
+Haapsalu_sademete_andmed_2014_2019_2_ <- read_excel("//intra.ttu.ee/home/janet.roosimagi/Desktop/EXX9067/Haapsalu sademete andmed/Haapsalu sademete andmed 2014-2019 (2).xlsx", 
+                                                    col_types = c("date", "text"), skip = 1)
+```
+
+# View data:
+
+```{r}
+head(Haapsalu_sademete_andmed_2014_2019_2_,3)
+```
+
+## Giving a name to columns:
+
+```{r}
+names(Haapsalu_sademete_andmed_2014_2019_2_) <- c("Aeg",	"TunniSademeteSumma_mm")
+```
+
+## Reading data as character:
+
+```{r}
+Haapsalu_sademete_andmed_2014_2019_2_$Aeg_tekst<- as.character(Haapsalu_sademete_andmed_2014_2019_2_$Aeg)
+```
+
+## In order to make minute figures into hours, I "cut" minutes:
+
+```{r}
+substr(Haapsalu_sademete_andmed_2014_2019_2_$Aeg_tekst, 1, 10)
+```
+
+## Creating a new category (Aeg_paev):
+
+```{r}
+Haapsalu_sademete_andmed_2014_2019_2_$Aeg_paev<- as.factor(substr(Haapsalu_sademete_andmed_2014_2019_2_$Aeg_tekst, 1, 10))
+```
+
+## Finding the average values for the categories and plot the whole period and name the X and Y axis:
+
+```{r}
+with(Haapsalu_sademete_andmed_2014_2019_2_, tapply(Aeg_paev, TunniSademeteSumma_mm, mean))
+
+plot(Haapsalu_sademete_andmed_2014_2019_2_$Aeg, Haapsalu_sademete_andmed_2014_2019_2_$`TunniSademeteSumma_mm`, xlab="Date", ylab="Sademed")
+```
+
+
+## Then I separate the years so I can make a graph for each year separately:
+
+```{r}
+Haapsalu_sademete_andmed_2014_2019_2_$aasta <- as.factor(substring(Haapsalu_sademete_andmed_2014_2019_2_$Aeg_tekst,1,4))
+
+sademed2014 <- subset(Haapsalu_sademete_andmed_2014_2019_2_, aasta == '2014')
+
+plot(sademed2014$Aeg, sademed2014$`TunniSademeteSumma_mm`)
+
+sademed2015 <- subset(Haapsalu_sademete_andmed_2014_2019_2_, aasta == '2015')
+
+plot(sademed2015$Aeg, sademed2015$`TunniSademeteSumma_mm`)
+
+sademed2016 <- subset(Haapsalu_sademete_andmed_2014_2019_2_, aasta == '2016')
+
+plot(sademed2016$Aeg, sademed2016$`TunniSademeteSumma_mm`)
+
+sademed2017 <- subset(Haapsalu_sademete_andmed_2014_2019_2_, aasta == '2017')
+
+plot(sademed2017$Aeg, sademed2017$`TunniSademeteSumma_mm`)
+
+sademed2018 <- subset(Haapsalu_sademete_andmed_2014_2019_2_, aasta == '2018')
+
+plot(sademed2018$Aeg, sademed2018$`TunniSademeteSumma_mm`)
+
+sademed2019 <- subset(Haapsalu_sademete_andmed_2014_2019_2_, aasta == '2019')
+
+plot(sademed2019$Aeg, sademed2019$`TunniSademeteSumma_mm`)
+```
+
+
+## Creating a time series graph:
+
+```{r}
+library(dygraphs)
+
+
+Haapsalu_sademete_andmed_2014_2019_2_$datetime<- as.POSIXct(Haapsalu_sademete_andmed_2014_2019_2_$Aeg)
+
+library(xts)
+
+don <- xts(x = Haapsalu_sademete_andmed_2014_2019_2_$TunniSademeteSumma_mm, order.by = Haapsalu_sademete_andmed_2014_2019_2_$datetime)
+
+dygraph(don) %>%
+  dyOptions(labelsUTC = TRUE, fillGraph=TRUE, fillAlpha=0.1, drawGrid = FALSE, colors="#5ad6d8") %>%
+  dyRangeSelector() %>%
+  dyCrosshair(direction = "vertical") %>%
+  dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.2, hideOnMouseOut = FALSE)  %>%
+  dyRoller(rollPeriod = 1)
+
+```
+
+# Conclusion
+
+In conclusion I can say that I find R very practical tool for analysing different data. In this course I got a good overview of R Studio and learned some useful tips how I can make my work easier by using R. What I am most happy about is the time series graph that I can use in my continuous work.
+
+
